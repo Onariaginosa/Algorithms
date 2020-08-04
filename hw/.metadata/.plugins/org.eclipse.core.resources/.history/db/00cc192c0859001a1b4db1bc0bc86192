@@ -1,0 +1,110 @@
+package t3;
+
+import java.util.*;
+
+/**
+ * Artificial Intelligence responsible for playing the game of T3!
+ * Implements the alpha-beta-pruning mini-max search algorithm
+ */
+public class T3Player {
+    
+    /**
+     * Workhorse of an AI T3Player's choice mechanics that, given a game state,
+     * makes the optimal choice from that state as defined by the mechanics of
+     * the game of Tic-Tac-Total.
+     * Note: In the event that multiple moves have equivalently maximal minimax
+     * scores, ties are broken by move col, then row, then move number in ascending
+     * order (see spec and unit tests for more info). The agent will also always
+     * take an immediately winning move over a delayed one (e.g., 2 moves in the future).
+     * @param state The state from which the T3Player is making a move decision.
+     * @return The T3Player's optimal action.
+     */
+    public T3Action choose (T3State state) {
+    	ABNode root = new ABNode(state, 0,0, true, 0);
+    	root = alphabeta(root);
+    	return root.bestAction;
+    }
+    
+    
+    private ABNode alphabeta(ABNode data) {
+    	System.out.println(data.current);
+    	int vcurr = 0;
+    	ABNode clone = null;
+    	Map<T3Action, T3State> children = data.children;
+    	//utility = 13-depth
+    	//highest utility is 13
+    	//smallest winning utility is 13-9 because only 9 possible spots to win or lose from
+    	//utility tie is 0
+    	//utility losing is -13 - depth because im not sure
+    	if(data.current.isWin() || data.current.isTie()) {
+    		data.utilityCost = data.maximizingPlayer?13 - data.depth: -13 -data.depth;
+    	} else if (data.current.isTie()) {
+    		data.utilityCost = 0;
+    	} else if(data.maximizingPlayer) {
+    		data.utilityCost = Integer.MIN_VALUE;
+    		for(T3Action child : children.keySet()) {
+    			clone = data.clone();
+    			clone.current = clone.current.getNextState(child);
+    			clone.maximizingPlayer = !clone.maximizingPlayer;
+    			clone.children = clone.current.getTransitions();
+    			clone.depth++;
+    			data.utilityCost = Math.max(vcurr, alphabeta(clone).utilityCost);
+    			data.alpha = Math.max(data.alpha, data.utilityCost);
+    			if(data.alpha == data.utilityCost) {
+    				data.bestAction = child;
+    			}
+    			if(data.beta <= data.alpha) {
+    				break;
+    			}
+    		}
+    	} else { 
+    		data.utilityCost = Integer.MAX_VALUE;
+    		for(T3Action child : children.keySet()) {
+    			clone = data.clone();
+    			clone.current = clone.current.getNextState(child);
+    			clone.maximizingPlayer = !clone.maximizingPlayer;
+    			clone.children = clone.current.getTransitions();
+    			clone.depth++;
+    			data.utilityCost = Math.min(vcurr, alphabeta(clone).utilityCost);
+    			data.alpha = Math.min(data.beta, vcurr);
+    			if(data.beta <= data.alpha) {
+    				break;
+    			}
+    		}
+    	}
+    	return data;
+    
+    // TODO: Implement your alpha-beta pruning recursive helper here!
+    }
+    private class ABNode {
+    	T3State current;
+    	int alpha, beta;
+    	boolean maximizingPlayer;
+    	int utilityCost;
+    	int depth;
+    	Map<T3Action, T3State> children;
+    	T3Action bestAction;
+    	
+    	ABNode(T3State current, int alpha, int beta, boolean maximizingPlayer, int depth){
+    		this.current = current;
+    		this.alpha = alpha;
+    		this.beta = beta;
+    		this.maximizingPlayer = maximizingPlayer;
+    		this.utilityCost = -1;
+    		this.depth =  depth;
+    		this.children = current.getTransitions();
+    		this.bestAction = null;
+    	}
+    	
+    	public ABNode clone() {
+    		ABNode clonedNode = new ABNode(this.current.clone(), this.alpha, this.beta, this.maximizingPlayer, this.depth);
+    		clonedNode.utilityCost = this.utilityCost;
+    		clonedNode.children = clonedNode.current.getTransitions();
+    		clonedNode.bestAction = this.bestAction;
+    		return clonedNode;
+    	}
+    	
+    }
+    
+}
+

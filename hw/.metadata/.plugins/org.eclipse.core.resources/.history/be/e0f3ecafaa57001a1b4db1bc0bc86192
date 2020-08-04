@@ -1,0 +1,62 @@
+package t3;
+
+import static org.junit.Assert.*;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TestWatcher;
+import org.junit.rules.Timeout;
+import org.junit.runner.Description;
+
+public class T3StateTest {
+	
+	 @Rule
+	    public Timeout globalTimeout = Timeout.seconds(8);
+	    
+	    // Grade record-keeping
+	    static int possible = 0, passed = 0;
+	    
+	    // the @Before method is run before every @Test
+	    @Before
+	    public void init () {
+	        possible++;
+	    }
+	    
+	    // Each time you pass a test, you get a point! Yay!
+	    // [!] Requires JUnit 4+ to run
+	    @Rule
+	    public TestWatcher watchman = new TestWatcher() {
+	        @Override
+	        protected void succeeded(Description description) {
+	            passed++;
+	        }
+	    };
+	    
+	    // Used for grading, reports the total number of tests
+	    // passed over the total possible
+	    @AfterClass
+	    public static void gradeReport () {
+	        System.out.println("============================");
+	        System.out.println("Tests Complete");
+	        System.out.println(passed + " / " + possible + " passed!");
+	        if ((1.0 * passed / possible) >= 0.9) {
+	            System.out.println("[!] Nice job!"); // Automated acclaim!
+	        }
+	        System.out.println("============================");
+	    }
+	    
+//	    UNIT TESTING TO SEE IF GET TRANSITIONS WORKS PROPERLY
+
+	@Test
+	public void test1() {
+		int[][] state = {
+	            {2, 1, 0},
+	            {0, 0, 0},
+	            {0, 0, 6}
+	        };
+		fail("Not yet implemented");
+	}
+
+}

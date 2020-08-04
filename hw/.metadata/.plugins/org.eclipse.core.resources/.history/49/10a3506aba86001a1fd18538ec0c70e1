@@ -1,0 +1,217 @@
+package huffman;
+
+import java.util.*;
+
+/**
+ * Huffman instances provide reusable Huffman Encoding Maps for compressing and
+ * decompressing text corpi with comparable distributions of characters.
+ */
+public class Huffman {
+
+	// -----------------------------------------------
+	// Construction
+	// -----------------------------------------------
+
+	private HuffNode trieRoot;
+	private TreeMap<Character, String> encodingMap;
+	private int longestEncodingLength = 0;
+
+	/**
+	 * Creates the Huffman Trie and Encoding Map using the character distributions
+	 * in the given text corpus
+	 * 
+	 * @param corpus A String representing a message / document corpus with
+	 *               distributions over characters that are implicitly used
+	 *               throughout the methods that follow. Note: this corpus ONLY
+	 *               establishes the Encoding Map; later compressed corpi may
+	 *               differ.
+	 */
+
+	Huffman (String corpus) {
+    	TreeMap<Character, Integer> charFrequencies = new TreeMap<Character, Integer>();
+    	PriorityQueue<HuffNode> queue = new PriorityQueue<HuffNode>();
+    	encodingMap = new TreeMap<Character, String>();    	getCharacters(charFrequencies, corpus);    	for (Map.Entry<Character, Integer> character : charFrequencies.entrySet()) {
+    		HuffNode node = new HuffNode(character.getKey(), character.getValue());
+      		queue.add(node);			
+    	}    	consolidateQueue(queue);
+    	trieRoot = queue.poll();
+    	encodeMap(trieRoot, encodingMap, "");    }    // -----------------------------------------------
+    // Constructor helper methods
+    // -----------------------------------------------       /**
+     * Creates a TreeMap of the characters in the corpus and their frequencies.
+     * 
+     * @param charFrequencies A TreeMap of the characters and their frequencies from the corpus.
+     * @param message The corpus string to encode/decode.
+     * @return A TreeMap that now has all of the characters and their frequencies.
+     */
+    private TreeMap<Character, Integer> getCharacters (TreeMap<Character, Integer> charFrequencies, String message) {
+    	char[] chars; 
+    	chars = message.toCharArray();
+    	for (char character : chars) {
+    		if (!charFrequencies.containsKey(character)) {
+    			charFrequencies.put(character, 1);
+    		}
+    		else if (charFrequencies.containsKey(character)) {
+    			charFrequencies.replace(character, charFrequencies.get(character) + 1);
+    		}
+    	}
+    	return charFrequencies;
+    }    /**
+     * Consolidates the priority queue of nodes in order to make a trie-like structure.
+     * 
+     * @param queue A PriorityQueue of HuffNodes.
+     * @return A PriorityQueue of HuffNodes that are now linked to each other.
+     */
+    private PriorityQueue<HuffNode> consolidateQueue (PriorityQueue<HuffNode> queue) {   	
+    	while (queue.size() > 1) {
+    		HuffNode first = queue.poll();
+    		HuffNode second = queue.poll();
+    		HuffNode parent = new HuffNode('\u0000', (first.count + second.count));
+    		parent.right = first;
+    		parent.left = second;
+    		queue.add(parent);
+    	}	
+    	return queue;
+    }    /**
+     * Creates the encoding map based for each character, assigning strings of 0s and 1s to each character.
+     * 
+     * @param currentNode The current HuffNode. 
+     * @param encodingMap A TreeMap of characters and the strings of 0s and 1s.
+     * @param charCode A String of 0s and 1s that is the code for each character.
+     */
+    private void encodeMap(HuffNode currentNode, TreeMap<Character, String> encodingMap, String charCode) {
+    	if (currentNode.isLeaf()) {
+    		encodingMap.put(currentNode.character, charCode);
+    	}    	if (!currentNode.isLeaf()) {
+    		encodeMap(currentNode.right, encodingMap, charCode + "0");
+    		encodeMap(currentNode.left, encodingMap, charCode + "1");
+    	}	
+    }   
+	// -----------------------------------------------
+	// Compression
+	// -----------------------------------------------
+
+	/**
+	 * Compresses the given String message / text corpus into its Huffman coded
+	 * bitstring, as represented by an array of bytes. Uses the encodingMap field
+	 * generated during construction for this purpose.
+	 * 
+	 * @param message String representing the corpus to compress.
+	 * @return {@code byte[]} representing the compressed corpus with the Huffman
+	 *         coded bytecode. Formatted as 3 components: (1) the first byte
+	 *         contains the number of characters in the message, (2) the bitstring
+	 *         containing the message itself, (3) possible 0-padding on the final
+	 *         byte.
+	 */
+	public byte[] compress(String message) {
+		String msg = "";
+		for (char c : message.toCharArray()) {
+			msg += encodingMap.get(c);
+		} 
+		// add the padding
+		while (msg.length() % 8 != 0) {
+			msg += "0";
+		}
+		byte[] result = new byte[msg.length() / 8 + 1];
+		Integer currentInt = message.length();
+		result[0] = currentInt.byteValue();
+		int i = 0;
+		int j = 1;
+
+		while (i + 8 <= msg.length()) {
+			currentInt = Integer.parseInt(msg.substring(i, i + 8), 2);
+			result[j] = currentInt.byteValue();
+			i += 8;
+			j++;
+		}
+
+		return result;
+	}
+
+	// -----------------------------------------------
+	// Decompression
+	// -----------------------------------------------
+
+	/**
+	 * Decompresses the given compressed array of bytes into their original, String
+	 * representation. Uses the trieRoot field (the Huffman Trie) that generated the
+	 * compressed message during decoding.
+	 * 
+	 * @param compressedMsg {@code byte[]} representing the compressed corpus with
+	 *                      the Huffman coded bytecode. Formatted as 3 components:
+	 *                      (1) the first byte contains the number of characters in
+	 *                      the message, (2) the bitstring containing the message
+	 *                      itself, (3) possible 0-padding on the final byte.
+	 * @return Decompressed String representation of the compressed bytecode
+	 *         message.
+	 */
+	public String decompress(byte[] compressedMsg) {
+		int size = compressedMsg[0];
+		String result = "";
+		String cMsg = "";
+		int currentLength = 1;
+		String subStr;
+
+		for (int i = 1; i < compressedMsg.length; i++) {
+			subStr = Integer.toBinaryString((compressedMsg[i] + 256) % 256);
+			while (subStr.length() % 8 != 0) {
+				subStr = "0" + subStr;
+			}
+			cMsg = cMsg + subStr;
+		}
+		while (size > 0) {
+			while (currentLength <= this.longestEncodingLength) {
+				subStr = cMsg.substring(0, currentLength);
+				if (encodingMap.containsValue(subStr)) {
+					for (char c : this.encodingMap.keySet()) {
+						if (encodingMap.get(c).equals(subStr)) {
+							result += c;
+							cMsg = cMsg.substring(currentLength);
+							break;
+						}
+					}
+					break;
+				} else {
+					currentLength++;
+				}
+			}
+			size--;
+			currentLength = 1;
+		}
+
+		return result;
+	}
+
+	// -----------------------------------------------
+	// Huffman Trie
+	// -----------------------------------------------
+
+	/**
+	 * Huffman Trie Node class used in construction of the Huffman Trie. Each node
+	 * is a binary (having at most a left and right child), contains a character
+	 * field that it represents (in the case of a leaf, otherwise the null character
+	 * \0), and a count field that holds the number of times the node's character
+	 * (or those in its subtrees, in the case of inner nodes) appear in the corpus.
+	 */
+	private static class HuffNode implements Comparable<HuffNode> {
+
+		HuffNode left, right;
+		char character;
+		int count;
+
+		HuffNode(char character, int count) {
+			this.count = count;
+			this.character = character;
+		}
+
+		public boolean isLeaf() {
+			return left == null && right == null;
+		}
+
+		public int compareTo(HuffNode other) {
+			return this.count - other.count;
+		}
+
+	}
+
+}

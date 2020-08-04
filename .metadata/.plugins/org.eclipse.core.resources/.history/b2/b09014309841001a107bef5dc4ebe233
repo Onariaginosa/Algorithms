@@ -1,0 +1,75 @@
+package pathfinder.uninformed;
+
+import java.util.*;
+
+/**
+ * Maze Pathfinding algorithm that implements a basic, uninformed, breadth-first tree search.
+ */
+public class Pathfinder {
+    
+    /**
+     * Given a MazeProblem, which specifies the actions and transitions available in the
+     * search, returns a solution to the problem as a sequence of actions that leads from
+     * the initial to a goal state.
+     * 
+     * @param problem A MazeProblem that specifies the maze, actions, transitions.
+     * @return A List of Strings representing actions that lead from the initial to
+     * the goal state, of the format: ["R", "R", "L", ...]
+     */
+    public static List<String> solve (MazeProblem problem) {
+        Queue<SearchTreeNode> frontier = new LinkedList<SearchTreeNode>();
+        List<MazeState> visited = new ArrayList<MazeState>();
+        SearchTreeNode current = new SearchTreeNode(problem.INITIAL_STATE, "",null);
+        frontier.add(current);
+        return solveHelper(current, problem, frontier, visited);
+    }
+    
+    
+    private static List<String> solveHelper (SearchTreeNode current, MazeProblem problem, Queue<SearchTreeNode> frontier, List<MazeState> visited) {
+    	if(problem.isGoal(current.state)) {
+            List<String> result = new ArrayList<String>();
+            while(current.parent != null) {
+            	result.add(current.action);
+            	current = current.parent;
+            }
+    		return result;
+    	}else if(!visited.contains(current.state)) {
+    			Map<String, MazeState> next = problem.getTransitions(current.state);
+        		
+       		 	for (String name : next.keySet()) { System.out.println(name);
+       		 		frontier.add(new SearchTreeNode(next.get(name), name, current));
+       		 	}	
+       		 	visited.add(current.state);
+       		 	System.out.println(current.action);
+       		 	System.out.println(current.state);
+       		 	return solveHelper((SearchTreeNode) frontier.peek(), problem, frontier, visited);  
+    	}
+    		return new ArrayList<String>();  	
+    	}
+    
+}
+
+/**
+ * SearchTreeNode that is used in the Search algorithm to construct the Search
+ * tree.
+ */
+class SearchTreeNode {
+    
+    MazeState state;
+    String action;
+    SearchTreeNode parent;
+    
+    /**
+     * Constructs a new SearchTreeNode to be used in the Search Tree.
+     * 
+     * @param state The MazeState (col, row) that this node represents.
+     * @param action The action that *led to* this state / node.
+     * @param parent Reference to parent SearchTreeNode in the Search Tree.
+     */
+    SearchTreeNode (MazeState state, String action, SearchTreeNode parent) {
+        this.state = state;
+        this.action = action;
+        this.parent = parent;
+    }
+    
+}

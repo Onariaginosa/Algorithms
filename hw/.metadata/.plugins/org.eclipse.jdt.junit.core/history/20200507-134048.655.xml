@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?><testrun name="CSPTests" project="lmu-cmsi282-spring2020-homework5-Onariaginosa" tests="10" started="10" failures="0" errors="0" ignored="0">
+  <testsuite name="csp.CSPTests" time="0.519">
+    <testcase name="CSP_t0" classname="csp.CSPTests" time="0.0"/>
+    <testcase name="CSP_t1" classname="csp.CSPTests" time="0.0"/>
+    <testcase name="CSP_t2" classname="csp.CSPTests" time="0.0"/>
+    <testcase name="CSP_t3" classname="csp.CSPTests" time="0.0"/>
+    <testcase name="CSP_t4" classname="csp.CSPTests" time="0.0"/>
+    <testcase name="CSP_t5" classname="csp.CSPTests" time="0.0"/>
+    <testcase name="CSP_t6" classname="csp.CSPTests" time="0.0"/>
+    <testcase name="CSP_t7" classname="csp.CSPTests" time="0.0"/>
+    <testcase name="CSP_t8" classname="csp.CSPTests" time="0.014"/>
+    <testcase name="CSP_t9" classname="csp.CSPTests" time="0.505"/>
+  </testsuite>
+</testrun>

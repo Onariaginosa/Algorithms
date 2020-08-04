@@ -1,0 +1,179 @@
+package pathfinder.informed;
+
+import java.util.*;
+
+/**
+ * Maze Path finding algorithm that implements a basic, uninformed, breadth-first tree search.
+ */
+public class Pathfinder {
+	
+	ArrayList<SearchTreeNode> frontier;
+	ArrayList<MazeState> visited;
+	MazeState nearestGoal;
+	boolean obtainedKey;
+	
+    @SuppressWarnings("unchecked")
+	Pathfinder(MazeProblem problem) {
+        this.frontier  = new ArrayList<SearchTreeNode>();;
+        this.visited = new ArrayList<MazeState>();
+        this.nearestGoal = nearestGoal(problem.KEY_STATE, problem.GOAL_STATES);
+        this.obtainedKey =false;
+    }
+    /**
+     * Given a MazeProblem, which specifies the actions and transitions available in the
+     * search, returns a solution to the problem as a sequence of actions that leads from
+     * the initial to a goal state.
+     * 
+     * @param problem A MazeProblem that specifies the maze, actions, transitions.
+     * @return An ArrayList of Strings representing actions that lead from the initial to
+     * the goal state, of the format: ["R", "R", "L", ...]
+     */
+    public static ArrayList<String> solve (MazeProblem problem) {
+    	if(problem.KEY_STATE == null) {return null;}
+    	SearchTreeNode current = new SearchTreeNode(problem.INITIAL_STATE, "",null, 0);
+    	Pathfinder findPath = new Pathfinder(problem);
+    	findPath.frontier.add(current);
+    	return solveHelper(current, problem, findPath);
+    }
+    
+    
+    /**
+     * Helper Method to recursively do the solve method
+     * @param current     SearchTreeNode type that represents the current node we are on
+     * @param problem     MazeProblem type that represents the entire maze problem
+     * @param frontier    Queue type that represents the nodes to be explored
+     * @param visited     List type of MazeStates that keeps track of the nodes visited
+     * @return
+     */
+    private static ArrayList<String> solveHelper (SearchTreeNode current, MazeProblem problem, Pathfinder pathfinder) {
+    	if(problem.isGoal(current.state)) {
+            ArrayList<String> result = new ArrayList<String>();
+            while(current.parent != null) {
+            	result.add(0, current.action);
+            	current = current.parent;
+            }
+    		return result;
+    	}
+    	
+    	if (pathfinder.frontier.isEmpty() || pathfinder.visited.contains(current.state)) {return null;}
+    	else {
+    	ArrayList<SearchTreeNode> children = null;
+    	if (current.state.equals(problem.KEY_STATE)) {
+    		pathfinder.obtainedKey = true;
+    	}
+    	
+    	if (pathfinder.obtainedKey) {
+    		children = sortedNodes(problem.getTransitions(current.state), current, pathfinder.nearestGoal, problem);
+    		System.out.println(children.size());
+    		
+    	} else {
+    		System.out.println("I made it");
+    		children = sortedNodes(problem.getTransitions(current.state), current, problem.KEY_STATE, problem);
+    		System.out.println(children.size());
+    	}
+    	
+    	for (int i = children.size()-1; i >=0; i--) {
+    		pathfinder.frontier.add(children.get(i));
+    	}
+    	pathfinder.visited.add(current.state);
+    	return solveHelper(pathfinder.frontier.remove(0), problem, pathfinder);
+    	}
+    }
+    
+    private static ArrayList<SearchTreeNode> sortedNodes(Map<String,MazeState> actions, SearchTreeNode parent, MazeState destination, MazeProblem problem){
+    	ArrayList<SearchTreeNode> sortedNodes = new ArrayList<SearchTreeNode>();	
+    	for(String action : actions.keySet()) {
+    		if(sortedNodes.isEmpty()) {
+    			System.out.println("phase 1");
+    			sortedNodes.add(new SearchTreeNode(actions.get(action), action, parent, getTotalCost(actions.get(action), destination, problem)));
+    		} else {
+    			System.out.println(sortedNodes.size());
+    			for (int i = 0; i < sortedNodes.size(); i++) {
+	    			if(getTotalCost(actions.get(action), destination, problem) < sortedNodes.get(i).cost) {
+	    				sortedNodes.add(i,new SearchTreeNode(actions.get(action), action, parent, getTotalCost(actions.get(action), destination, problem)));
+	    				break;
+	    			} else if (i == (sortedNodes.size()-1)) {
+	    				System.out.println("in here");
+	    				sortedNodes.add(new SearchTreeNode(actions.get(action), action, parent, getTotalCost(actions.get(action), destination, problem)));
+	    			}
+    			}
+    		}
+    	}
+    	return sortedNodes; 	
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /**
+	 * Method that returns 0 if the cost is equal, 1 if the current cost is greater than the other cost
+	 * and -1 if the current cost is less than the other cost
+	 */
+	private static int getTotalCost(MazeState current, MazeState destination, MazeProblem problem) {
+		return heuristic(current, destination) + problem.getCost(current);
+	}
+	private static int heuristic(MazeState state, MazeState destination) {
+		return ManhattanDistance(state, destination);
+	}
+    
+    private static int ManhattanDistance (MazeState one, MazeState two) {
+    	return Math.abs(one.col - two.col) + Math.abs(one.row - two.row);
+    }
+    private MazeState nearestGoal(MazeState key, Set<MazeState> goals) {
+    	int shortestDistance= 0;
+    	MazeState nearestGoal=null;
+    	for(MazeState goal: goals) {
+    		if(nearestGoal == null) {
+    			nearestGoal = goal;
+    			shortestDistance = ManhattanDistance(key, goal);
+    		} else if (shortestDistance < ManhattanDistance(key, goal) && shortestDistance != 0) {
+    			nearestGoal = goal;
+    			shortestDistance = ManhattanDistance(key, goal);
+    		}
+    	}
+    	return nearestGoal;
+    }
+    
+    
+    
+    
+}
+
+/**
+ * SearchTreeNode that is used in the Search algorithm to construct the Search
+ * tree.
+ * [!] NOTE: Feel free to change this however you see fit to adapt your solution 
+ *     for A* (including any fields, changes to constructor, additional methods)
+ */
+
+class SearchTreeNode {
+    
+    MazeState state;
+    String action;
+    SearchTreeNode parent;
+    int cost;
+    
+    /**
+     * Constructs a new SearchTreeNode to be used in the Search Tree.
+     * 
+     * @param state The MazeState (row, col) that this node represents.
+     * @param action The action that *led to* this state / node.
+     * @param parent Reference to parent SearchTreeNode in the Search Tree.
+     */
+    SearchTreeNode (MazeState state, String action, SearchTreeNode parent, int cost) {
+        this.state = state;
+        this.action = action;
+        this.parent = parent;
+        this.cost = cost;
+    }
+    
+}

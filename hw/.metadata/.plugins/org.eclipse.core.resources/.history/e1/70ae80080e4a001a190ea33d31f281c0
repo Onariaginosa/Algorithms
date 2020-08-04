@@ -1,0 +1,5 @@
+package pathfinder.informed;
+
+public class Pathfinder {
+
+}

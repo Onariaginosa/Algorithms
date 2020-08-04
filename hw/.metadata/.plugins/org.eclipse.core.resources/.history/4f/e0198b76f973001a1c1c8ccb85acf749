@@ -1,0 +1,72 @@
+package spellex;
+
+import java.util.*;
+
+public class SpellEx {
+    
+    // Note: Not quite as space-conscious as a Bloom Filter,
+    // nor a Trie, but since those aren't in the JCF, this map 
+    // will get the job done for simplicity of the assignment
+    private Map<String, Integer> dict;
+    
+    // For your convenience, you might need this array of the
+    // alphabet's letters for a method
+    private static final char[] LETTERS = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+
+    /**
+     * Constructs a new SpellEx spelling corrector from a given
+     * "dictionary" of words mapped to their frequencies found
+     * in some corpus (with the higher counts being the more
+     * prevalent, and thus, the more likely to be suggested)
+     * @param words The map of words to their frequencies
+     */
+    SpellEx(Map<String, Integer> words) {
+        dict = new HashMap<>(words);
+    }
+    
+    /**
+     * Returns the edit distance between the two input Strings
+     * s0 and s1 based on the minimal number of insertions, deletions,
+     * replacements, and transpositions required to transform s0
+     * into s1
+     * @param s0 A "start" String
+     * @param s1 A "destination" String
+     * @return The minimal edit distance between s0 and s1
+     */
+    public static int editDistance (String s0, String s1) {
+        throw new UnsupportedOperationException();
+    }
+    
+    /**
+     * Returns the n closest words in the dictionary to the given word,
+     * where "closest" is defined by:
+     * <ul>
+     *   <li>Minimal edit distance (with ties broken by:)
+     *   <li>Largest count / frequency in the dictionary (with ties broken by:)
+     *   <li>Ascending alphabetic order
+     * </ul>
+     * @param word The word we are comparing against the closest in the dictionary
+     * @param n The number of least-distant suggestions desired
+     * @return A set of up to n suggestions closest to the given word
+     */
+    public Set<String> getNLeastDistant (String word, int n) {
+        throw new UnsupportedOperationException();
+    }
+    
+    /**
+     * Returns the set of n most frequent words in the dictionary to occur with
+     * edit distance distMax or less compared to the given word. Ties in
+     * max frequency are broken with ascending alphabetic order.
+     * @param word The word to compare to those in the dictionary
+     * @param n The number of suggested words to return
+     * @param distMax The maximum edit distance (inclusive) that suggested / returned 
+     * words from the dictionary can stray from the given word
+     * @return The set of n suggested words from the dictionary with edit distance
+     * distMax or less that have the highest frequency.
+     */
+    public Set<String> getNBestUnderDistance (String word, int n, int distMax) {
+        throw new UnsupportedOperationException();
+    }
+    
+}
+

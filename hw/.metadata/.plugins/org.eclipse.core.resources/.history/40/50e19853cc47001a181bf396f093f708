@@ -1,0 +1,128 @@
+package pathfinder.informed;
+
+import java.util.*;
+
+/**
+ * Maze Path finding algorithm that implements a basic, uninformed, breadth-first tree search.
+ */
+public class Pathfinder {
+	
+	private class Compare implements Comparable<SearchTreeNode> {
+		
+		SearchTreeNode current;
+		MazeProblem problem;
+		MazeState destination;
+		
+		
+		Compare(SearchTreeNode node, MazeProblem maze, Pathfinder pathfinder, MazeState destination) {
+			this.current = node;
+			this.problem = maze;
+			this.destination = destination;
+			
+		}
+		/**
+		 * Method that returns 0 if the cost is equal, 1 if the current cost is greater than the other cost
+		 * and -1 if the current cost is less than the other cost
+		 */
+		public int compareTo(SearchTreeNode other) {
+			int currentTotalCost = heuristic(this.current, this.destination) + this.problem.getCost(this.current.state);
+			int otherTotalCost = heuristic(this.current, this.destination) + other.cost + this.problem.getCost(other.state);
+			return ((currentTotalCost == otherTotalCost)? 0:((currentTotalCost > otherTotalCost)? 1: -1));
+		}
+		private int heuristic(SearchTreeNode state, MazeState destination) {
+			return ManhattanDistance(state.state, destination);
+		}
+	}
+	
+	
+	PriorityQueue<SearchTreeNode> frontier;
+	ArrayList<SearchTreeNode> visited;
+	MazeState nearestGoal;
+	boolean obtainedKey;
+	
+    Pathfinder(MazeProblem problem) {
+        this.frontier  = new PriorityQueue<SearchTreeNode>();
+        this.visited = new ArrayList<SearchTreeNode>();
+        this.nearestGoal = nearestGoal(problem.KEY_STATE, problem.GOAL_STATES);
+        this.obtainedKey =false;
+    }
+    /**
+     * Given a MazeProblem, which specifies the actions and transitions available in the
+     * search, returns a solution to the problem as a sequence of actions that leads from
+     * the initial to a goal state.
+     * 
+     * @param problem A MazeProblem that specifies the maze, actions, transitions.
+     * @return An ArrayList of Strings representing actions that lead from the initial to
+     * the goal state, of the format: ["R", "R", "L", ...]
+     */
+    public static ArrayList<String> solve (MazeProblem problem) {
+    	if(problem.KEY_STATE == null) {return null;}
+    	Pathfinder findPath = new Pathfinder(problem);
+    	return new ArrayList<String>();
+    }
+    
+    /**
+	 * Method that returns 0 if the cost is equal, 1 if the current cost is greater than the other cost
+	 * and -1 if the current cost is less than the other cost
+	 */
+	public int compareTo(SearchTreeNode other, SearchTreeNode current, MazeState destination, MazeProblem problem) {
+		int currentTotalCost = heuristic(current, destination) + problem.getCost(current.state);
+		int otherTotalCost = heuristic(current, destination) + other.cost + problem.getCost(other.state);
+		return ((currentTotalCost == otherTotalCost)? 0:((currentTotalCost > otherTotalCost)? 1: -1));
+	}
+	private int heuristic(SearchTreeNode state, MazeState destination) {
+		return ManhattanDistance(state.state, destination);
+	}
+    
+    private int ManhattanDistance (MazeState one, MazeState two) {
+    	return Math.abs(one.col - two.col) + Math.abs(one.row - two.row);
+    }
+    private MazeState nearestGoal(MazeState key, Set<MazeState> goals) {
+    	int shortestDistance= 0;
+    	MazeState nearestGoal=null;
+    	for(MazeState goal: goals) {
+    		if(nearestGoal == null) {
+    			nearestGoal = goal;
+    			shortestDistance = ManhattanDistance(key, goal);
+    		} else if (shortestDistance < ManhattanDistance(key, goal) && shortestDistance != 0) {
+    			nearestGoal = goal;
+    			shortestDistance = ManhattanDistance(key, goal);
+    		}
+    	}
+    	return nearestGoal;
+    }
+    
+    
+    
+    
+}
+
+/**
+ * SearchTreeNode that is used in the Search algorithm to construct the Search
+ * tree.
+ * [!] NOTE: Feel free to change this however you see fit to adapt your solution 
+ *     for A* (including any fields, changes to constructor, additional methods)
+ */
+
+class SearchTreeNode {
+    
+    MazeState state;
+    String action;
+    SearchTreeNode parent;
+    int cost;
+    
+    /**
+     * Constructs a new SearchTreeNode to be used in the Search Tree.
+     * 
+     * @param state The MazeState (row, col) that this node represents.
+     * @param action The action that *led to* this state / node.
+     * @param parent Reference to parent SearchTreeNode in the Search Tree.
+     */
+    SearchTreeNode (MazeState state, String action, SearchTreeNode parent, int cost) {
+        this.state = state;
+        this.action = action;
+        this.parent = parent;
+        this.cost = cost;
+    }
+    
+}

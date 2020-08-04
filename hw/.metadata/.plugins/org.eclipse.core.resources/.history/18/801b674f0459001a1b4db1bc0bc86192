@@ -1,0 +1,70 @@
+package t3;
+
+import java.util.*;
+
+/**
+ * Artificial Intelligence responsible for playing the game of T3!
+ * Implements the alpha-beta-pruning mini-max search algorithm
+ */
+public class T3Player {
+    
+    /**
+     * Workhorse of an AI T3Player's choice mechanics that, given a game state,
+     * makes the optimal choice from that state as defined by the mechanics of
+     * the game of Tic-Tac-Total.
+     * Note: In the event that multiple moves have equivalently maximal minimax
+     * scores, ties are broken by move col, then row, then move number in ascending
+     * order (see spec and unit tests for more info). The agent will also always
+     * take an immediately winning move over a delayed one (e.g., 2 moves in the future).
+     * @param state The state from which the T3Player is making a move decision.
+     * @return The T3Player's optimal action.
+     */
+    public T3Action choose (T3State state) {
+    	
+    	
+        throw new UnsupportedOperationException();
+    }
+    
+    
+    private int alphabeta(T3State current, int alpha, int beta, boolean maximizingPlayer) {
+    	int vcurr = 0;
+    	T3State clone = null;
+    	Map<T3Action, T3State> children = current.getTransitions();
+    	//utility = depth times cost???
+    	if(current.isWin() || current.isTie()) {
+    		return maximizingPlayer?13:-13;
+    	}
+    	if(current.isTie()) {
+    		return 0;
+    	}
+    	if(maximizingPlayer) {
+    		vcurr = Integer.MIN_VALUE;
+    		for(T3Action child : children.keySet()) {
+    			clone = current.clone();
+    			clone.getNextState(child);
+    			vcurr = Math.max(vcurr, alphabeta(clone, alpha, beta, !maximizingPlayer)-1);
+    			alpha = Math.max(alpha, vcurr);
+    			if(beta <= alpha) {
+    				break;
+    			}
+    		}
+    		return vcurr;
+    	} else { 
+    		vcurr = Integer.MAX_VALUE;
+    		for(T3Action child : children.keySet()) {
+    			clone = current.clone();
+    			clone.getNextState(child);
+    			vcurr = Math.min(vcurr, alphabeta(clone, alpha, beta, !maximizingPlayer));
+    			alpha = Math.min(beta, vcurr);
+    			if(beta <= alpha) {
+    				break;
+    			}
+    		}
+    		return vcurr;
+    	}
+    
+    // TODO: Implement your alpha-beta pruning recursive helper here!
+    }
+    
+}
+

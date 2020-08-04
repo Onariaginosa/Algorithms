@@ -1,0 +1,14 @@
+package spellex;
+
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+public class kjj {
+
+	@Test
+	public void test() {
+		fail("Not yet implemented");
+	}
+
+}

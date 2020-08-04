@@ -1,0 +1,490 @@
+
+package pathfinder.informed;
+
+import java.util.*;
+
+// TODO: FIGURE OUT WHAT TO DO IF THE KEY IS UNREACHABLE ~ LAST TEST AHA
+
+/**
+
+ * Maze Pathfinding algorithm that implements a basic, uninformed, breadth-first tree search.
+
+ */
+
+public class Pathfinder {
+
+    
+
+    /**
+
+     * Given a MazeProblem, which specifies the actions and transitions available in the
+
+     * search, returns a solution to the problem as a sequence of actions that leads from
+
+     * the initial to a goal state.
+
+     * 
+
+     * @param problem A MazeProblem that specifies the maze, actions, transitions.
+
+     * @return An ArrayList of Strings representing actions that lead from the initial to
+
+     * the goal state, of the format: ["R", "R", "L", ...]
+
+     */
+
+    public static ArrayList<String> solve (MazeProblem problem) {
+
+        
+
+//      if (problem.getTransitions(problem.KEY_STATE)) {
+
+//          return null;
+
+//      }
+
+        if (problem.KEY_STATE == null) {
+
+            System.out.println("she be null");
+
+            return null;
+
+        }
+
+      
+
+//        ArrayList<String> result = new ArrayList<String>();
+
+       
+
+        HashSet<MazeState> visited = new HashSet<MazeState>();
+
+        ArrayList<String> result = new ArrayList<String>();
+
+        
+
+        
+
+        
+
+//        HashSet<MazeState> foundKey = new HashSet<MazeState>();
+
+//        HashSet<MazeState> notFoundKey = new HashSet<MazeState>();
+
+//        MazeState finalGoal = problem.KEY_STATE;
+
+   
+
+        
+
+        
+
+        PriorityQueue<SearchTreeNode> frontier = new PriorityQueue<SearchTreeNode>();
+
+        boolean keyFound = false;       
+
+        SearchTreeNode current = new SearchTreeNode(problem.INITIAL_STATE, "", null, 0, 0);
+
+        
+
+        frontier.add(current);
+
+        
+
+//ArrayList<String> helper = new ArrayList<String>();
+
+//helper.add("R");
+
+//helper.add("R");
+
+//helper.add("D");
+
+//helper.add("D");
+
+//helper.add("U");
+
+//helper.add("U");
+
+//helper.add("R");
+
+//helper.add("R");
+
+//helper.add("D");
+
+//helper.add("D");
+
+//        return helper;
+
+        return solveHelper(current, problem, frontier, visited, keyFound, problem.KEY_STATE, result); 
+
+    }
+
+    
+
+    
+
+    private static ArrayList<String> solveHelper (SearchTreeNode current, MazeProblem problem, PriorityQueue<SearchTreeNode> frontier, HashSet<MazeState> visited, boolean keyFound, MazeState finalGoal, ArrayList<String> result) {
+
+        // Got the key and the state you are at is the goal ~ return the array list of moves 
+
+         if (keyFound == true && current.state.equals(finalGoal)) {
+
+             
+
+            System.out.println("Key found = true and final goal is goal");
+
+            System.out.println(collector(current));
+
+            return collector(current);
+
+//            ArrayList<String> resultFinal = new ArrayList<String>();
+
+//            while(current.parent != null) {
+
+//              result.add(0, current.action);
+
+//              current = current.parent;
+
+//            }
+
+//            System.out.println("RESULT " + result.toString());
+
+//            return result;
+
+        }
+
+         if (current.state.equals(problem.KEY_STATE)) {
+
+            
+
+            System.out.println("Key state " + problem.KEY_STATE); 
+
+            System.out.println("Final goal before key found " + finalGoal);
+
+            System.out.println("Maze Problem goal " + problem.GOAL_STATES);
+
+        
+
+            keyFound = true;
+
+            finalGoal = closestGoal(problem);
+
+            System.out.println("Final goal after key found " + finalGoal);
+
+            System.out.println("visited to string " + visited.toString());
+
+            visited.clear();
+
+            System.out.println("visited to string " + visited.toString());
+
+        //  frontier.add(new SearchTreeNode(problem.KEY_STATE, current.action, current, current.pastCost, distanceCalculator(problem.KEY_STATE, closestGoal(problem))));
+
+            System.out.println("current state = key" + current.state.equals(problem.KEY_STATE));
+
+            
+
+            
+
+            Map<String, MazeState> next = problem.getTransitions(current.state);
+
+            for (String transition : next.keySet()) {   
+
+                
+
+                int pastcost = problem.getCost(next.get(transition));
+
+                int cost = pastcost + distanceCalculator(next.get(transition), finalGoal);
+
+                //int pastcost = current.pastCost + problem.getCost(next.get(transition));
+
+                //int cost = current.totalCost + problem.getCost(next.get(transition)) + distanceCalculator(next.get(transition), finalGoal);
+
+                frontier.add(new SearchTreeNode(next.get(transition), transition, current, pastcost, cost));
+
+            }
+
+            System.out.println(current.action);
+
+            current.parent = frontier.peek();
+
+            // result.add(current.action);
+
+            visited.add(problem.KEY_STATE);
+
+            
+
+            System.out.println("visited to string " + visited.toString());
+
+        }
+
+          if (!visited.contains(current.state)) {
+
+//          if (current.state.equals(problem.KEY_STATE)) {
+
+//              
+
+//              System.out.println("Key state " + problem.KEY_STATE);
+
+//              
+
+//              System.out.println("Final goal before key found " + finalGoal);
+
+//              
+
+//              System.out.println("Maze Problem goal " + problem.GOAL_STATES);
+
+//          
+
+//              keyFound = true;
+
+//              finalGoal = closestGoal(problem);
+
+//              
+
+//              System.out.println("Final goal after key found " + finalGoal);
+
+//
+
+//              collector(current);
+
+//              
+
+//              visited.clear();
+
+//                              
+
+//              System.out.println("current state = key" + current.state.equals(problem.KEY_STATE));
+
+//              
+
+//          }
+
+            Map<String, MazeState> next = problem.getTransitions(current.state);
+
+            for (String transition : next.keySet()) {   
+
+                
+
+                int pastcost = problem.getCost(next.get(transition));
+
+                int cost = pastcost + distanceCalculator(next.get(transition), finalGoal);
+
+                //int pastcost = current.pastCost + problem.getCost(next.get(transition));
+
+                //int cost = current.totalCost + problem.getCost(next.get(transition)) + distanceCalculator(next.get(transition), finalGoal);
+
+                frontier.add(new SearchTreeNode(next.get(transition), transition, current, pastcost, cost));
+
+            }
+
+            // result.add(current.action);
+
+            visited.add(current.state);
+
+        }
+
+        
+
+        // create a new node, store parent reference 
+
+        
+
+        // recursive stuff 
+
+        
+
+   //   collector(current);
+
+        return solveHelper(frontier.poll(), problem, frontier, visited, keyFound, finalGoal, result);
+
+    }    
+
+    
+
+   
+
+    // returns the distance between two maze states - used for future cost 
+
+    private static int distanceCalculator(MazeState first, MazeState second) {
+
+        return (Math.abs(first.col - second.col) + Math.abs(second.row - second.row));
+
+    }
+
+    
+
+    // updates the total cost of a node 
+
+//    private static int totalCostCalculator(SearchTreeNode node, MazeProblem problem, boolean keyFound) {
+
+//      if (keyFound = false) {
+
+//          return node.totalCost = node.pastCost + problem.getCost(node.state) + distanceCalculator(node.state, problem.KEY_STATE);
+
+//      }
+
+//      
+
+//      if (keyFound = true) {
+
+//          return node.totalCost = node.pastCost + problem.getCost(node.state) + distanceCalculator(node.state, closestGoal(problem));
+
+//      }
+
+//      return -100000000;
+
+//    }
+
+//  
+
+    
+
+    
+
+    private static ArrayList<String> collector(SearchTreeNode current) {
+
+        ArrayList<String> collectorResult = new ArrayList<String>();
+
+        while(current.parent != null) {
+
+            collectorResult.add(0, current.action);
+
+            current = current.parent;
+
+        }
+
+        System.out.println("RESULT " + collectorResult.toString());
+
+        System.out.println("       COLLECTOR RESULT  " + collectorResult);
+
+        return collectorResult;
+
+    }
+
+    
+
+    
+
+    
+
+    
+
+    // calculates the closest goal to the key, based on the hashset of goals 
+
+    private static MazeState closestGoal(MazeProblem problem) {
+
+        int closestDistance = 0;
+
+        int temporaryDistance = 0;
+
+        MazeState temporaryGoal = null;
+
+ 
+
+        for (MazeState goal : problem.GOAL_STATES) {
+
+        
+
+            if (temporaryGoal == null) {
+
+                temporaryGoal = goal;
+
+                closestDistance = distanceCalculator(problem.KEY_STATE, temporaryGoal);
+
+            }
+
+            
+
+            temporaryDistance = distanceCalculator(problem.KEY_STATE, goal);            
+
+            
+
+            if (temporaryDistance < closestDistance) {
+
+                closestDistance = temporaryDistance;
+
+                temporaryGoal = goal;
+
+            }       
+
+        }
+
+        System.out.println("TEMP GOAL " + temporaryGoal);
+
+        return temporaryGoal;
+
+    }   
+
+}
+
+ 
+
+/**
+
+ * SearchTreeNode that is used in the Search algorithm to construct the Search
+
+ * tree.
+
+ * [!] NOTE: Feel free to change this however you see fit to adapt your solution 
+
+ *     for A* (including any fields, changes to constructor, additional methods)
+
+ */
+
+class SearchTreeNode implements Comparable<SearchTreeNode> {
+
+    
+
+    MazeState state;
+
+    String action;
+
+    SearchTreeNode parent;
+
+    int pastCost;
+
+    int totalCost;
+
+    
+
+    /**
+
+     * Constructs a new SearchTreeNode to be used in the Search Tree.
+
+     * 
+
+     * @param state The MazeState (row, col) that this node represents.
+
+     * @param action The action that *led to* this state / node.
+
+     * @param parent Reference to parent SearchTreeNode in the Search Tree.
+
+     * @param pastCost The total past cost value that led to this spot in the maze.
+
+     */
+
+    SearchTreeNode (MazeState state, String action, SearchTreeNode parent, int pastCost, int totalCost) {
+
+        this.state = state;
+
+        this.action = action;
+
+        this.parent = parent;
+
+        this.pastCost = pastCost;
+
+        this.totalCost = totalCost;
+
+    }
+
+    
+
+    @Override
+
+    public int compareTo(SearchTreeNode other) {
+
+        return (this.totalCost - other.totalCost);
+
+    }
+
+}

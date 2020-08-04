@@ -1,0 +1,68 @@
+package t3;
+
+import java.util.*;
+
+/**
+ * Artificial Intelligence responsible for playing the game of T3!
+ * Implements the alpha-beta-pruning mini-max search algorithm
+ */
+public class T3Player {
+    
+    /**
+     * Workhorse of an AI T3Player's choice mechanics that, given a game state,
+     * makes the optimal choice from that state as defined by the mechanics of
+     * the game of Tic-Tac-Total.
+     * Note: In the event that multiple moves have equivalently maximal minimax
+     * scores, ties are broken by move col, then row, then move number in ascending
+     * order (see spec and unit tests for more info). The agent will also always
+     * take an immediately winning move over a delayed one (e.g., 2 moves in the future).
+     * @param state The state from which the T3Player is making a move decision.
+     * @return The T3Player's optimal action.
+     */
+    public T3Action choose (T3State state) {
+    	
+    	
+        throw new UnsupportedOperationException();
+    }
+    
+    
+    private int alphabeta(T3State current, int alpha, int beta, boolean maximizingPlayer) {
+    	int vcurr = 0;
+    	//utility = depth times cost???
+    	if(current.isWin() || current.isTie()) {
+    		//return utility score
+    	}
+    	if(maximizingPlayer) {
+    		vcurr = Integer.MIN_VALUE;
+    		for()
+    	}
+    	
+    	int utility = 0;
+    	Map<T3Action, T3State> moves = new TreeMap<T3Action,T3State>();
+    	
+//  if maximizingPlayer
+//    v := -∞
+//    for each child of node
+//      v := max(v, alphabeta(child, α, β, FALSE))
+//      α := max(α, v)
+//      if β ≤ α
+//        break;
+//    return v
+//  else
+//    v := ∞
+//    for each child of node
+//      v := min(v, alphabeta(child, α, β, TRUE))
+//      β := min(β, v)
+//      if β ≤ α
+//        break;
+//    return v
+//	
+//	
+    
+    // TODO: Implement your alpha-beta pruning recursive helper here!
+    	
+    	return utility;
+    }
+    
+}
+

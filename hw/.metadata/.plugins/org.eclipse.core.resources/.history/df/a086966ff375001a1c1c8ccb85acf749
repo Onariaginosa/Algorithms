@@ -1,0 +1,273 @@
+/** ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *  File name     :  SpellEx.java
+ *  Purpose       :  Implements the SpellEx class by providing various spell-checking mechanisms
+ *  @author       :  Ona Igbinedion
+ *  @author       :  Andrew Forney(skeleton)
+ *  Date written  :  2020-04-01
+ *  Notes         :  None right now.  We'll add some as they occur.
+ *  Warnings      :  None right now.  We'll add some as they occur.
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *  Revision History
+ *  ---------------
+ *            Rev      Date     Modified by:  Reason for change/modification
+ *           -----  ----------  -------------  -----------------------------------------------------------
+ *  @version 1.0.0  2020-04-01  Onariaginosa   Initial writing and release
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+package spellex;
+
+import java.util.*;
+
+public class SpellEx {
+
+	// Note: Not quite as space-conscious as a Bloom Filter,
+	// nor a Trie, but since those aren't in the JCF, this map
+	// will get the job done for simplicity of the assignment
+	private Map<String, Integer> dict;
+
+	// For your convenience, you might need this array of the
+	// alphabet's letters for a method
+	private static final char[] LETTERS = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+	// field 
+	private String currentWord;
+
+	/**
+	 * Constructs a new SpellEx spelling corrector from a given "dictionary" of
+	 * words mapped to their frequencies found in some corpus (with the higher
+	 * counts being the more prevalent, and thus, the more likely to be suggested)
+	 * 
+	 * @param words The map of words to their frequencies
+	 */
+	SpellEx(Map<String, Integer> words) {
+		dict = new HashMap<String, Integer>(words);
+	}
+
+	/**
+	 * Returns the edit distance between the two input Strings s0 and s1 based on
+	 * the minimal number of insertions, deletions, replacements, and transpositions
+	 * required to transform s0 into s1
+	 * 
+	 * @param s0 A "start" String
+	 * @param s1 A "destination" String
+	 * @return The minimal edit distance between s0 and s1
+	 */
+	public static int editDistance(String s0, String s1) {
+		int rowSize = s0.length() + 1;
+		int colSize = s1.length() + 1;
+		int[][] editTable = new int[rowSize][colSize];
+		int transposition = Integer.MAX_VALUE;
+
+		for (int r = 0; r < rowSize; r++) {
+			for (int c = 0; c < colSize; c++) {
+				if (r == 0) {
+					editTable[r][c] = c;
+				} else if (c == 0) {
+					editTable[r][c] = r;
+				} else if (s0.charAt(r - 1) == s1.charAt(c - 1)) {
+					editTable[r][c] = editTable[r - 1][c - 1];
+				} else {
+					if (r > 1 && c > 1 && s0.charAt(r - 1) == s1.charAt(c - 2)
+							&& s0.charAt(r - 2) == s1.charAt(c - 1)) {
+						transposition = editTable[r - 2][c - 2];
+					}
+					editTable[r][c] = 1 + Math.min(Math.min(editTable[r][c - 1], // Insertion
+							editTable[r - 1][c]), // Removal
+							Math.min(editTable[r - 1][c - 1], // Replacement
+									transposition));
+					transposition = Integer.MAX_VALUE;
+				}
+			}
+		}
+
+		return editTable[rowSize - 1][colSize - 1];
+	}
+
+	/**
+	 * Returns the n closest words in the dictionary to the given word, where
+	 * "closest" is defined by:
+	 * <ul>
+	 * <li>Minimal edit distance (with ties broken by:)
+	 * <li>Largest count / frequency in the dictionary (with ties broken by:)
+	 * <li>Ascending alphabetic order
+	 * </ul>
+	 * 
+	 * @param word The word we are comparing against the closest in the dictionary
+	 * @param n    The number of least-distant suggestions desired
+	 * @return A set of up to n suggestions closest to the given word
+	 */
+	public Set<String> getNLeastDistant(String word, int n) {
+		this.currentWord = word;
+		Set<String> chosenCandidates = new TreeSet<String>();
+		PriorityQueue<String> candidates = new PriorityQueue<String>(dict.size(), new getNLeastDistantComparator());
+		for (String term : dict.keySet()) {
+			candidates.add(term);
+		}
+		for (int i = 0; i < n; i++) {
+			chosenCandidates.add(candidates.poll());
+		}
+		return chosenCandidates;
+	}
+
+	/**
+	 * Returns the set of n most frequent words in the dictionary to occur with edit
+	 * distance distMax or less compared to the given word. Ties in max frequency
+	 * are broken with ascending alphabetic order.
+	 * 
+	 * @param word    The word to compare to those in the dictionary
+	 * @param n       The number of suggested words to return
+	 * @param distMax The maximum edit distance (inclusive) that suggested /
+	 *                returned words from the dictionary can stray from the given
+	 *                word
+	 * @return The set of n suggested words from the dictionary with edit distance
+	 *         distMax or less that have the highest frequency.
+	 */
+	public Set<String> getNBestUnderDistance(String word, int n, int distMax) {
+		Set<String> oldWords = new TreeSet<String>();
+		Set<String> newWords = new TreeSet<String>();
+		PriorityQueue<String> candidates = new PriorityQueue<String>(11, new getNBestUnderDistanceComparator());
+		Set<String> chosenCandidates = new TreeSet<String>();
+		oldWords.add(word);
+		if (dict.containsKey("once")) {
+    		System.out.println("once's frequency is: " + dict.get("once"));
+    	}
+		for (int i = 0; i < distMax; i++) {
+			for (String oldWord : oldWords) {
+				newWords.addAll(insertionHelper(oldWord));
+				newWords.addAll(deletionHelper(oldWord));
+				newWords.addAll(replacementHelper(oldWord));
+				if (oldWord.length() > 1) {
+					newWords.addAll(transpositionHelper(oldWord));
+				}
+			}
+			for (String newWord : newWords) {
+				if (dict.containsKey(newWord)) {
+					candidates.add(newWord);
+					if(newWord == "once") {
+						System.out.println(newWord);
+					}
+				}
+			}
+			oldWords = newWords;
+			newWords = new TreeSet<String>();
+		}
+		for (int i = 0; i < n; i++) {
+			if (candidates.size() > 0 && candidates.peek() != null) {
+				chosenCandidates.add(candidates.poll());
+			}
+		}
+		return chosenCandidates;
+	}
+
+	/**
+	 * Helper method implementing the insertion edits in the getNBestUnderDistance
+	 * method
+	 * 
+	 * @param word String representation of the word to be edited
+	 * @return Set representation of the resulting Strings
+	 */
+	private Set<String> insertionHelper(String word) {
+		Set<String> insertionWords = new TreeSet<String>();
+		for (char letter : LETTERS) {
+			for (int i = 0; i <= word.length(); i++) {
+				insertionWords.add(word.substring(0, i) + letter + word.substring(i));
+			}
+		}
+		return insertionWords;
+	}
+
+	/**
+	 * Helper method implementing the deletion edits in the getNBestUnderDistance
+	 * method
+	 * 
+	 * @param word String representation of the word to be edited
+	 * @return Set representation of the resulting Strings
+	 */
+	private Set<String> deletionHelper(String word) {
+		Set<String> deletionWords = new TreeSet<String>();
+		for (int i = 0; i < word.length(); i++) {
+			deletionWords.add(word.substring(0, i) + word.substring(i + 1));
+		}
+		return deletionWords;
+	}
+
+	/**
+	 * Helper method implementing the replacement edits in the getNBestUnderDistance
+	 * method
+	 * 
+	 * @param word String representation of the word to be edited
+	 * @return Set representation of the resulting Strings
+	 */
+	private Set<String> replacementHelper(String word) {
+		Set<String> replacementWords = new TreeSet<String>();
+		for (char letter : LETTERS) {
+			for (int i = 0; i < word.length(); i++) {
+				replacementWords.add(word.substring(0, i) + letter + word.substring(i + 1));
+			}
+		}
+		return replacementWords;
+	}
+
+	/**
+	 * Helper method implementing the transposition edits in the
+	 * getNBestUnderDistance method
+	 * 
+	 * @param word String representation of the word to be edited
+	 * @return Set representation of the resulting Strings
+	 */
+	private Set<String> transpositionHelper(String word) {
+		Set<String> transpositionWords = new TreeSet<String>();
+		for (int i = 0; i < word.length() - 1; i++) {
+			transpositionWords.add(word.substring(0, i) + word.substring(i + 1, i + 2) + word.substring(i, i + 1)
+					+ word.substring(i + 2));
+		}
+		return transpositionWords;
+	}
+
+	/**
+	 * Class implementing the Comparator for the Queue implemented in the
+	 * getNBestUnderDistance method Sorts the strings based on frequency and
+	 * alphabetical order
+	 * 
+	 * @author onariaginosa
+	 *
+	 */
+	class getNBestUnderDistanceComparator implements Comparator<String> {
+
+		public int compare(String s1, String s2) {
+			if (dict.get(s1) < dict.get(s2)) {
+				return 1;
+			} else if (dict.get(s1) > dict.get(s2)) {
+				return -1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
+	/**
+	 * Comparator class for the queue implemented in the getNLeastDistantComparator
+	 * method Sorts strings based on edit distance, then frequency, then
+	 * alphabetical order
+	 * 
+	 * @author onariaginosa
+	 *
+	 */
+	class getNLeastDistantComparator implements Comparator<String> {
+
+		public int compare(String s1, String s2) {
+			if (SpellEx.editDistance(currentWord, s1) > SpellEx.editDistance(currentWord, s2)) {
+				return 1;
+			} else if (SpellEx.editDistance(currentWord, s1) < SpellEx.editDistance(currentWord, s2)) {
+				return -1;
+			}
+			if (dict.get(s1) < dict.get(s2)) {
+				return 1;
+			} else if (dict.get(s1) > dict.get(s2)) {
+				return -1;
+			} else {
+				return 0;
+			}
+		}
+	}
+
+}

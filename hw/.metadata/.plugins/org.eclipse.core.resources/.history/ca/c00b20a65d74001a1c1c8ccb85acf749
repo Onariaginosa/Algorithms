@@ -1,0 +1,150 @@
+package spellex;
+
+import java.util.*;
+
+public class SpellEx {
+    
+    // Note: Not quite as space-conscious as a Bloom Filter,
+    // nor a Trie, but since those aren't in the JCF, this map 
+    // will get the job done for simplicity of the assignment
+    private Map<String, Integer> dict;
+    
+    // For your convenience, you might need this array of the
+    // alphabet's letters for a method
+    private static final char[] LETTERS = "abcdefghijklmnopqrstuvwxyz".toCharArray();
+
+    /**
+     * Constructs a new SpellEx spelling corrector from a given
+     * "dictionary" of words mapped to their frequencies found
+     * in some corpus (with the higher counts being the more
+     * prevalent, and thus, the more likely to be suggested)
+     * @param words The map of words to their frequencies
+     */
+    SpellEx(Map<String, Integer> words) {
+        dict = sortByValues(new HashMap<String, Integer>(words));
+    }
+    
+    /**
+     * Returns the edit distance between the two input Strings
+     * s0 and s1 based on the minimal number of insertions, deletions,
+     * replacements, and transpositions required to transform s0
+     * into s1
+     * @param s0 A "start" String
+     * @param s1 A "destination" String
+     * @return The minimal edit distance between s0 and s1
+     */
+    public static int editDistance (String s0, String s1) {
+    	int rowSize = s0.length()+1;
+    	int colSize = s1.length()+1;
+    	int[][] editTable = new int[rowSize][colSize];
+    	int transposition = Integer.MAX_VALUE;
+    	
+    	for(int r = 0; r < rowSize; r++) {
+    		for(int c = 0; c < colSize; c++) {
+    			if(r == 0) {
+    				editTable[r][c] = c;
+    			} else if(c == 0) {
+    				editTable[r][c] = r;
+    			} else if (s0.charAt(r-1) == s1.charAt(c-1)) {
+    				editTable[r][c] = editTable[r-1][c-1];
+    			} else {
+    				if(r > 1 && c > 1 && s0.charAt(r-1) == s1.charAt(c-2) && s0.charAt(r-2) == s1.charAt(c-1)) {
+    					transposition = editTable[r-2][c-2];
+    				}
+    				editTable[r][c] = 1 + Math.min(Math.min(editTable[r][c-1], // Insertion
+    						                       editTable[r-1][c]), // Removal
+    						                       Math.min(editTable[r-1][c-1], //Replacement
+    						                       transposition));
+    				transposition = Integer.MAX_VALUE;
+    			}
+    		}
+    	}
+    	
+    	return editTable[rowSize-1][colSize-1];
+    }
+    
+    /**
+     * Returns the n closest words in the dictionary to the given word,
+     * where "closest" is defined by:
+     * <ul>
+     *   <li>Minimal edit distance (with ties broken by:)
+     *   <li>Largest count / frequency in the dictionary (with ties broken by:)
+     *   <li>Ascending alphabetic order
+     * </ul>
+     * @param word The word we are comparing against the closest in the dictionary
+     * @param n The number of least-distant suggestions desired
+     * @return A set of up to n suggestions closest to the given word
+     */
+    public Set<String> getNLeastDistant (String word, int n) {
+//    	mapping the string value to the edit distance
+    	Set<String> nLeastDistant = new HashSet<String>();
+    	Map<String, Integer> foundWords = null;
+    	int returnWords = 0;
+    	for( String word2 : dict.keySet()) {
+    		foundWords.put(word2, SpellEx.editDistance(word, word2));
+    	}
+    	Map<String,Integer> sortedWords = sortByValues((HashMap<String, Integer>) foundWords);
+    	for(String key : foundWords.keySet()) {
+    		if(nLeastDistant.size() < n) {
+    			
+    		}
+    	}
+    	
+    	
+    	
+        throw new UnsupportedOperationException();
+    }
+    
+    public void testHashMap() {
+    	HashMap<String, Integer> foundWords = new HashMap<String, Integer>();
+    	foundWords.put("A", 33 );
+    	foundWords.put("B", 8 );
+    	foundWords.put("F", 5);
+    	foundWords.put("C", 5 );
+    	foundWords.put("D", 27);
+    	foundWords.put("E", 5 );
+    	HashMap<String, Integer> sorted = sortByValues(foundWords);
+    	System.out.println("Pre-sort: ");
+    	System.out.println(foundWords);
+    	System.out.println("Post-sort: ");
+    	System.out.println(sorted);
+    	
+    }
+    
+    /**
+     * Returns the set of n most frequent words in the dictionary to occur with
+     * edit distance distMax or less compared to the given word. Ties in
+     * max frequency are broken with ascending alphabetic order.
+     * @param word The word to compare to those in the dictionary
+     * @param n The number of suggested words to return
+     * @param distMax The maximum edit distance (inclusive) that suggested / returned 
+     * words from the dictionary can stray from the given word
+     * @return The set of n suggested words from the dictionary with edit distance
+     * distMax or less that have the highest frequency.
+     */
+    public Set<String> getNBestUnderDistance (String word, int n, int distMax) {
+        throw new UnsupportedOperationException();
+    }
+    
+    private static HashMap<String, Integer> sortByValues(HashMap<String, Integer> map) { 
+        List list = new LinkedList(map.entrySet());
+        // Defined Custom Comparator here
+        Collections.sort(list, new Comparator() {
+             public int compare(Object o1, Object o2) {
+                return ((Comparable) ((Map.Entry) (o1)).getValue())
+                   .compareTo(((Map.Entry) (o2)).getValue());
+             }
+        });
+
+        // Here I am copying the sorted list in HashMap
+        // using LinkedHashMap to preserve the insertion order
+        HashMap<String, Integer> sortedHashMap = new LinkedHashMap<String, Integer>();
+        for (Iterator it = list.iterator(); it.hasNext();) {
+               Map.Entry<String, Integer> entry = (Map.Entry<String, Integer>) it.next();
+               sortedHashMap.put(entry.getKey(), entry.getValue());
+        } 
+        return sortedHashMap;
+   }
+    
+}
+

@@ -1,0 +1,427 @@
+package csp;
+
+import java.time.LocalDate;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.*;
+
+/**
+ * CSP: Calendar Satisfaction Problem Solver Provides a solution for scheduling
+ * some n meetings in a given period of time and according to some set of unary
+ * and binary constraints on the dates of each meeting.
+ */
+public class CSP {
+
+	/**
+	 * A Calendar Satisfaction Problem is implemented and solved by the CSP.solve
+	 * method, parameterized by 4 inputs:
+	 * 
+	 * int nMeetings describing how many meetings need to be scheduled, and are
+	 * indexed from 0 to n-1.
+	 * 
+	 * LocalDate rangeStart The start date (inclusive) of the domains of each of the
+	 * n meeting-variables
+	 * 
+	 * LocalDate rangeEnd The end date (inclusive) of the domains of each of the n
+	 * meeting-variables
+	 * 
+	 * Set<DateConstraint> constraints A Set of date constraints on the meeting
+	 * times in the formats specified above.
+	 **/
+
+	/**
+	 * @Test public void CSP_t_Ex() { Set<DateConstraint> constraints = new
+	 *       HashSet<>( Arrays.asList( new UnaryDateConstraint(0, "!=",
+	 *       LocalDate.of(2019, 1, 2)), new UnaryDateConstraint(2, "<",
+	 *       LocalDate.of(2019, 1, 3)), new BinaryDateConstraint(0, "!=", 1), new
+	 *       BinaryDateConstraint(1, "==", 2) ) );
+	 * 
+	 *       List<LocalDate> solution = CSP.solve( 3, // Number of meetings to
+	 *       schedule LocalDate.of(2019, 1, 1), // Domain start date
+	 *       LocalDate.of(2019, 1, 3), // Domain end date constraints // Constraints
+	 *       all meetings must satisfy );
+	 * 
+	 *       testSolution(solution, constraints); }
+	 */
+
+	/**
+	 * Public interface for the CSP solver in which the number of meetings, range of
+	 * allowable dates for each meeting, and constraints on meeting times are
+	 * specified.
+	 * 
+	 * @param nMeetings   The number of meetings that must be scheduled, indexed
+	 *                    from 0 to n-1
+	 * @param rangeStart  The start date (inclusive) of the domains of each of the n
+	 *                    meeting-variables
+	 * @param rangeEnd    The end date (inclusive) of the domains of each of the n
+	 *                    meeting-variables
+	 * @param constraints Date constraints on the meeting times (unary and binary
+	 *                    for this assignment)
+	 * @return A list of dates that satisfies each of the constraints for each of
+	 *         the n meetings, indexed by the variable they satisfy, or null if no
+	 *         solution exists.
+	 */
+	public static List<LocalDate> solve(int nMeetings, LocalDate rangeStart, LocalDate rangeEnd,
+			Set<DateConstraint> constraints) {
+		return AC3(nMeetings, rangeStart, rangeEnd, constraints);
+	}
+
+//	private static List<LocalDate> backTrack(int current, ArrayList<DateVar> dateVars, boolean complete) {
+//		int other;
+//		List<LocalDate> list = null;
+//		for (BinaryDateConstraint c : dateVars.get(current).BinaryConstraints) {
+//			other = (c.L_VAL == current) ? c.R_VAL : c.L_VAL;
+//			if (!isConsistent(dateVars.get(current).current, c.OP, dateVars.get(other).domain)) {
+//				System.out.println("Made it here");
+//				return null;
+//			}
+//		}
+//		if (complete) {
+//			return getStates(dateVars);
+//		} else {
+//			for (LocalDate newDate : dateVars.get(current).domain) {
+//				dateVars.get(current).current = newDate;
+//				list = backTrack(current++, dateVars, !(dateVars.get(dateVars.size() - 1).current == null));
+//				if (list != null) {
+//					return list;
+//				}
+//			}
+//			return null;
+//		}
+//	}
+
+//	private static boolean isConsistent(LocalDate l, String operator, Set<LocalDate> domain) {
+//		for (LocalDate r : domain) {
+//			if (!constraintsViolated(l, operator, r)) {
+//				return true;
+//			}
+//		}
+//		return false;
+//	}
+
+	private static List<LocalDate> getStates(ArrayList<DateVar> dateVars) {
+		List<LocalDate> state = new ArrayList<LocalDate>();
+		for (int i = 0; i < dateVars.size(); i++) {
+			state.add(dateVars.get(i).current);
+		}
+		return state;
+	}
+
+	private static boolean constraintsViolated(LocalDate date, String constraint, LocalDate otherDate) {
+		switch (constraint) {
+		case "==":
+			if (otherDate.isEqual(date)) {
+				return false;
+			}
+			break;
+		case "!=":
+			if (!otherDate.isEqual(date)) {
+				return false;
+			}
+			break;
+		case "<":
+			if (otherDate.isAfter(date)) {
+				return false;
+			}
+			break;
+		case ">":
+			if (otherDate.isBefore(date)) {
+				return false;
+			}
+			break;
+		case "<=":
+			if (otherDate.isAfter(date) || otherDate.isEqual(date)) {
+				return false;
+			}
+			break;
+		case ">=":
+			if (otherDate.isBefore(date) || otherDate.isEqual(date)) {
+				return false;
+			}
+			break;
+		}
+		return true;
+	}
+
+//	private static List<LocalDate> AC3(int nMeetings, LocalDate rangeStart, LocalDate rangeEnd,
+//			Set<DateConstraint> constraints) {
+//		ArrayList<DateVar> dateVars = createDateVars(nMeetings, rangeStart, rangeEnd, constraints);
+//		Queue<int[]> arcs = createBinaryArcs(dateVars);
+//		int[] arc;
+//		DateVar left, right;
+//		int count;
+//		Set<LocalDate> trash;
+//		while (!arcs.isEmpty()) {
+//			arc = arcs.poll();
+//			left = dateVars.get(arc[0]);
+//			right = dateVars.get(arc[1]);
+//			if (left.domain.isEmpty() || right.domain.isEmpty()) {
+//				return null;
+//			}
+//			trash = new HashSet<LocalDate>();
+//			for (BinaryDateConstraint c : left.BinaryConstraints) {
+//				for (LocalDate l : left.domain) {
+//					count = 0;
+//					if (!isConsistent(l, c.OP, right.domain)) {
+//						trash.add(l);
+//					}
+//				}
+//			}
+//			if (!trash.isEmpty()) {
+//				arcs.addAll(invertArcs(left));
+//				left.domain.removeAll(trash);
+//				if (left.domain.isEmpty()) {
+//					System.out.println("Made it here");
+//					return null;
+//				}
+//			}
+//		}
+//
+//		return backTrack(0, dateVars, false);
+//	}
+	
+	private static List<LocalDate> AC3(int nMeetings, LocalDate rangeStart, LocalDate rangeEnd,
+			Set<DateConstraint> constraints) {
+		ArrayList<DateVar> dateVars = createDateVars(nMeetings, rangeStart, rangeEnd, constraints);			
+		Queue<int[]> arcs = createBinaryArcs(dateVars);
+		int[] current;
+		DateVar left, right;
+		int count = 0;
+		Set<int[]> newArcs;
+		Set<LocalDate> trash = new HashSet<LocalDate>();
+
+		while (arcs.size() > 0) {
+			current = arcs.poll();
+			left = dateVars.get(current[0]);
+			right = dateVars.get(current[1]);
+			if (left.domain.isEmpty() || right.domain.isEmpty()) {
+				System.out.println("why");
+				return null;
+			}
+			if (!left.BinaryConstraints.isEmpty()) {
+				for (BinaryDateConstraint c : left.BinaryConstraints) {
+					if (c.L_VAL == current[1] || c.R_VAL == current[1]) {
+						for (LocalDate date : left.domain) {
+							if (constraintsViolated(date, c.OP, right.domain)) {
+								trash.add(date);
+							}
+						}
+					}
+				}
+			}
+			if (!trash.isEmpty()) {
+				newArcs = invertArcs(left);
+				for (int[] newArc : newArcs) {
+					if (!arcs.contains(newArc)) {
+						arcs.add(newArc);
+					}
+				}
+			}
+			left.domain.removeAll(trash);
+			System.out.println("why");
+
+			if (left.domain.isEmpty()) {
+				return null;
+			}
+		}
+
+		return backTrack((List) new ArrayList<LocalDate>(), dateVars, false);
+
+	}		
+
+	
+	private static List<LocalDate> backTrack(List<LocalDate> state, ArrayList<DateVar> dateVars, boolean complete) {
+		int currentIndex = state.size() - 1;
+		Set<LocalDate> domain;
+		if (currentIndex >= 0) {
+			if (!dateVars.get(currentIndex).BinaryConstraints.isEmpty()) {
+				for (BinaryDateConstraint constraint : dateVars.get(currentIndex).BinaryConstraints) {
+					domain = (constraint.L_VAL == currentIndex) ? dateVars.get(constraint.R_VAL).domain
+							: dateVars.get(constraint.L_VAL).domain;
+					if (constraintsViolated(state.get(currentIndex), constraint.OP, domain)) {
+						return null;
+
+					}
+				}
+			}
+		}
+		if (complete) {
+			return state;
+		} else {
+			currentIndex++;
+			if (dateVars.get(currentIndex).domain.isEmpty()) {
+				return null;
+			}
+			for (LocalDate newDate : dateVars.get(currentIndex).domain) {
+				state.add(newDate);
+				dateVars.get(currentIndex).domain.remove(newDate);
+				break;
+			}
+			return backTrack(state, dateVars, (dateVars.size() == state.size()));
+		}
+	}
+	
+	private static boolean constraintsViolated(LocalDate date, String constraint, Set<LocalDate> domain) {
+		int count = 0;
+		switch (constraint) {
+		case "==":
+			for (LocalDate otherDate : domain) {
+				if (otherDate.isEqual(date)) {
+					count++;
+					break;
+				}
+			}
+
+			break;
+		case "!=":
+			for (LocalDate otherDate : domain) {
+				if (!otherDate.isEqual(date)) {
+					count++;
+					break;
+				}
+			}
+			break;
+		case "<":
+			for (LocalDate otherDate : domain) {
+				if (otherDate.isAfter(date)) {
+					count++;
+					break;
+				}
+			}
+			break;
+		case ">":
+			for (LocalDate otherDate : domain) {
+				if (otherDate.isBefore(date)) {
+					count++;
+					break;
+				}
+			}
+			break;
+		case "<=":
+			for (LocalDate otherDate : domain) {
+				if (otherDate.isAfter(date) || otherDate.isEqual(date)) {
+					count++;
+					break;
+				}
+			}
+			break;
+		case ">=":
+			for (LocalDate otherDate : domain) {
+				if (otherDate.isBefore(date) || otherDate.isEqual(date)) {
+					count++;
+					break;
+				}
+			}
+			break;
+		}
+		if (count == 0) {
+			return true;
+		}
+		return false;
+
+	}		
+	
+	private static ArrayList<DateVar> createDateVars(int nMeetings, LocalDate rangeStart, LocalDate rangeEnd,
+			Set<DateConstraint> constraints) {
+		ArrayList<DateVar> meetingSet = new ArrayList<DateVar>();
+		DateVar current;
+		Set<LocalDate> domain = getPossibleDates(rangeStart, rangeEnd);
+		for (int i = 0; i < nMeetings; i++) {
+			current = new DateVar(i, domain, constraints);
+			meetingSet.add(i, current);
+		}
+		return meetingSet;
+	}
+
+	private static Set<LocalDate> getPossibleDates(LocalDate rangeStart, LocalDate rangeEnd) {
+		Set<LocalDate> dates = rangeStart.datesUntil(rangeEnd).collect(Collectors.toSet());
+		dates.add(rangeEnd);
+		return dates;
+	}
+
+	private static Queue<int[]> createBinaryArcs(ArrayList<DateVar> meetings) {
+		Set<int[]> arcs = new HashSet<int[]>();
+		for (DateVar meeting : meetings) {
+			arcs.addAll(createArcs(meeting));
+		}
+		Queue<int[]> queue = new LinkedList<int[]>(arcs);
+		return queue;
+	}
+
+	private static Set<int[]> createArcs(DateVar meeting) {
+		Set<int[]> arcs = new HashSet<int[]>();
+		int[] arc = new int[2];
+		if (!meeting.BinaryConstraints.isEmpty()) {
+			for (BinaryDateConstraint bConstraint : meeting.BinaryConstraints) {
+				if (bConstraint.L_VAL == meeting.meeting) {
+					arc[0] = bConstraint.L_VAL;
+					arc[1] = bConstraint.R_VAL;
+				} else {
+					arc[0] = bConstraint.R_VAL;
+					arc[1] = bConstraint.L_VAL;
+				}
+				arcs.add(arc);
+			}
+		}
+		return arcs;
+	}
+
+	private static Set<int[]> invertArcs(DateVar meeting) {
+		Set<int[]> arcs = createArcs(meeting);
+		int x, y;
+		for (int[] arc : arcs) {
+			x = arc[0];
+			y = arc[1];
+			arc[0] = y;
+			arc[1] = x;
+		}
+		return arcs;
+	}
+
+	private static class DateVar {
+		LocalDate current;
+		Set<LocalDate> domain;
+		int meeting;
+		Set<UnaryDateConstraint> UnaryConstraints;
+		Set<BinaryDateConstraint> BinaryConstraints;
+
+		DateVar(int meeting, Set<LocalDate> domain, Set<DateConstraint> constraints) {
+			this.meeting = meeting;
+			this.domain = domain;
+			UnaryConstraints = new HashSet<UnaryDateConstraint>();
+			BinaryConstraints = new HashSet<BinaryDateConstraint>();
+			filterConstraints(constraints);
+			nodeConsistency();
+		}
+
+		private void filterConstraints(Set<DateConstraint> constraints) {
+			BinaryDateConstraint bc;
+			UnaryDateConstraint uc;
+			for (DateConstraint currentConstraint : constraints) {
+				if (currentConstraint.arity() == 2) {
+					bc = (BinaryDateConstraint) currentConstraint;
+					if (bc.R_VAL == this.meeting || bc.L_VAL == this.meeting) {
+						this.BinaryConstraints.add(bc);
+					}
+				} else {
+					uc = (UnaryDateConstraint) currentConstraint;
+					if (uc.L_VAL == this.meeting) {
+						this.UnaryConstraints.add(uc);
+					}
+				}
+			}
+		}
+
+		private void nodeConsistency() {
+			Set<LocalDate> trash = new HashSet<LocalDate>();
+			for (UnaryDateConstraint c : this.UnaryConstraints) {
+				for (LocalDate date : this.domain) {
+					if (CSP.constraintsViolated(date, c.OP, c.R_VAL)) {
+						trash.add(date);
+					}
+				}
+			}
+			this.domain.removeAll(trash);
+		}
+	}
+}

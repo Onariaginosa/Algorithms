@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workingSetManager>
+<workingSet editPageId="org.eclipse.jdt.internal.ui.DynamicSourcesWorkingSet" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1580708128488_0" label="Java Main Sources" name="Java Main Sources">
+<item elementID="=lmu-cmsi282-spring2020-homework1-Onariaginosa/src" factoryID="org.eclipse.jdt.ui.PersistableJavaElementFactory"/>
+</workingSet>
+<workingSet editPageId="org.eclipse.jdt.internal.ui.DynamicSourcesWorkingSet" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1580708128493_1" label="Java Test Sources" name="Java Test Sources"/>
+<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1580708128991_2" label="Window Working Set" name="Aggregate for window 1580708128990"/>
+<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1580880443016_3" label="Window Working Set" name="Aggregate for window 1580880443016"/>
+<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1580883290201_4" label="Window Working Set" name="Aggregate for window 1580883290201"/>
+<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1581143952277_5" label="Window Working Set" name="Aggregate for window 1581143952277"/>
+<workingSet aggregate="true" factoryID="org.eclipse.ui.internal.WorkingSetFactory" id="1582551233542_6" label="Window Working Set" name="Aggregate for window 1582551233542"/>
+</workingSetManager>

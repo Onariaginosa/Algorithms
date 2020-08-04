@@ -1,0 +1,102 @@
+/** ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *  File name     :  T3Player.java
+ *  Purpose       :  Implements the AI player using mini-max search
+ *  @author       :  Ona Igbinedion
+ *  Date written  :  2020-02-27
+ *  Notes         :  None right now.  We'll add some as they occur.
+ *  Warnings      :  None right now.  We'll add some as they occur.
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *  Revision History
+ *  ---------------
+ *            Rev      Date     Modified by:  Reason for change/modification
+ *           -----  ----------  -------------  -----------------------------------------------------------
+ *  @version 1.0.0  2020-02-27  Onariaginosa   Initial writing and release
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+package t3;
+
+import java.util.*;
+
+/**
+ * Artificial Intelligence responsible for playing the game of T3! Implements
+ * the alpha-beta-pruning mini-max search algorithm
+ */
+public class T3Player {
+
+	/**
+	 * Workhorse of an AI T3Player's choice mechanics that, given a game state,
+	 * makes the optimal choice from that state as defined by the mechanics of the
+	 * game of Tic-Tac-Total. Note: In the event that multiple moves have
+	 * equivalently maximal minimax scores, ties are broken by move col, then row,
+	 * then move number in ascending order (see spec and unit tests for more info).
+	 * The agent will also always take an immediately winning move over a delayed
+	 * one (e.g., 2 moves in the future).
+	 * 
+	 * @param state The state from which the T3Player is making a move decision.
+	 * @return The T3Player's optimal action.
+	 */
+	public T3Action choose(T3State state) {
+		return alphabeta(state, Integer.MIN_VALUE, Integer.MAX_VALUE, true).bestAction;
+	}
+/**
+ * The alpha beta pruning mechanism
+ * @param state             The state from which we are looking for the best move
+ * @param alpha             The largest utility cost at the maximizing node
+ * @param beta              The smallest utility cost at the minimizing node
+ * @param maximizingPlayer  If we are at a maximizing node or minimizing node
+ * @return                  A tuple representation of the utility cost and the best move
+ */
+	private Tuple alphabeta(T3State state, int alpha, int beta, boolean maximizingPlayer) {
+		Tuple child = null;
+		Tuple data = new Tuple();
+		Map<T3Action, T3State> children = state.getTransitions();
+		if (state.isWin()) {
+			data.utilityCost = !maximizingPlayer ? 2 : 0;
+		} else if (state.isTie()) {
+			data.utilityCost = 1;
+		} else if (maximizingPlayer) {
+			data.utilityCost = Integer.MIN_VALUE;
+			for (T3Action action : children.keySet()) {
+				if (children.get(action).isWin()) {
+					data.utilityCost = 2;
+					data.bestAction = action;
+					break;
+				} else {
+					child = alphabeta(children.get(action), alpha, beta, false);
+					data.utilityCost = Math.max(data.utilityCost, child.utilityCost);
+					if (alpha < data.utilityCost) {
+						alpha = data.utilityCost;
+						data.bestAction = action;
+						data.utilityCost = child.utilityCost;
+					}
+					if (beta <= alpha) {
+						break;
+					}
+				}
+			}
+		} else {
+			data.utilityCost = Integer.MAX_VALUE;
+			for (T3Action action : children.keySet()) {
+				child = alphabeta(children.get(action), alpha, beta, true);
+				data.utilityCost = Math.min(data.utilityCost, child.utilityCost);
+				beta = Math.min(beta, data.utilityCost);
+				if (beta <= alpha) {
+					break;
+				}
+			}
+		}
+		return data;
+	}
+	/**
+	 * The storage tuple containing the utility cost and the best action
+	 */
+	private class Tuple {
+		int utilityCost;
+		T3Action bestAction;
+
+		Tuple() {
+			this.bestAction = null;
+			utilityCost = -1;
+		}
+	}
+}

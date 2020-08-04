@@ -1,0 +1,14 @@
+package t3;
+
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+public class jhhlj {
+
+	@Test
+	public void test() {
+		fail("Not yet implemented");
+	}
+
+}

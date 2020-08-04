@@ -1,0 +1,69 @@
+package pathfinder.informed;
+
+import java.util.*;
+
+/**
+ * Maze Pathfinding algorithm that implements a basic, uninformed, breadth-first tree search.
+ */
+public class Pathfinder {
+    
+    /**
+     * Given a MazeProblem, which specifies the actions and transitions available in the
+     * search, returns a solution to the problem as a sequence of actions that leads from
+     * the initial to a goal state.
+     * 
+     * @param problem A MazeProblem that specifies the maze, actions, transitions.
+     * @return An ArrayList of Strings representing actions that lead from the initial to
+     * the goal state, of the format: ["R", "R", "L", ...]
+     */
+    public static ArrayList<String> solve (MazeProblem problem) {
+        throw new UnsupportedOperationException();
+    }
+    
+    
+}
+
+/**
+ * SearchTreeNode that is used in the Search algorithm to construct the Search
+ * tree.
+ * [!] NOTE: Feel free to change this however you see fit to adapt your solution 
+ *     for A* (including any fields, changes to constructor, additional methods)
+ */
+class Compare implements Comparable<SearchTreeNode> {
+	
+	SearchTreeNode current;
+	MazeProblem problem;
+	
+	
+	Compare(SearchTreeNode node, MazeProblem maze) {
+		this.current = node;
+		this.problem = maze;
+	}
+	public int compareTo(SearchTreeNode other) {
+		int currentTotalCost = this.current.cost + this.problem.getCost(this.current.state);
+		int otherTotalCost = other.cost + this.problem.getCost(other.state);
+		return ((currentTotalCost == otherTotalCost)? 0:((currentTotalCost > otherTotalCost)? 1: -1));
+	}
+}
+class SearchTreeNode {
+    
+    MazeState state;
+    String action;
+    SearchTreeNode parent;
+    int cost;
+    
+    /**
+     * Constructs a new SearchTreeNode to be used in the Search Tree.
+     * 
+     * @param state The MazeState (row, col) that this node represents.
+     * @param action The action that *led to* this state / node.
+     * @param parent Reference to parent SearchTreeNode in the Search Tree.
+     */
+    SearchTreeNode (MazeState state, String action, SearchTreeNode parent, int pastCost) {
+        this.state = state;
+        this.action = action;
+        this.parent = parent;
+        this.cost = pastCost;
+    }
+    
+}
